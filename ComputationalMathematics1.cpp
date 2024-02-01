@@ -36,46 +36,18 @@ int main()
     float buffer;
 
     int n = 0;
-
-    for (j = 1; j < MatrixDimension; j++)
-    {
+    for (i = 1; i < MatrixDimension; i++) {
         n = 0;
-        while (Matrix[j][n] == 0) {
+        while (Matrix[i][n] == 0) {
             n++;
         }
-        buffer = Matrix[j][n];
-        for (int k = 0; k < MatrixDimension + 1; k++)
+        for (j = i; j < MatrixDimension; j++)
         {
-            Matrix[j][k] -= Matrix[0][k] * buffer / Matrix[0][0];
-        }
-    }
-    cout << endl << "Матрица: " << endl;
-    MatrixOutput(Matrix);
-
-
-    for (j = 2; j < MatrixDimension; j++)
-    {
-        buffer = Matrix[j][1];
-        for (int k = 0; k < MatrixDimension + 1; k++)
-        {
-            Matrix[j][k] -= Matrix[1][k] * buffer / Matrix[1][1];
-        }
-    }
-    cout << endl << "Матрица: " << endl;
-    MatrixOutput(Matrix);
-
-
-
-    for (j = 3; j < 4; j++)
-    {
-        n = 0;
-        while (Matrix[j][n] == 0) {
-            n++;
-        }
-        buffer = Matrix[j][n];
-        for (int k = 0; k < MatrixDimension + 1; k++)
-        {
-            Matrix[j][k] -= Matrix[2][k] * buffer / Matrix[2][2];
+            buffer = Matrix[j][n];
+            for (int k = 0; k < MatrixDimension + 1; k++)
+            {
+                Matrix[j][k] -= Matrix[i-1][k] * buffer / Matrix[i-1][i-1];
+            }
         }
     }
     cout << endl << "Матрица: " << endl;
@@ -87,23 +59,10 @@ int main()
     else
     {
         cout << "Матрица не вырождена." << endl;
-        float x1, x2, x3, x4;
-        x4 = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
-        x3 = (Matrix[MatrixDimension - 2][MatrixDimension] - Matrix[MatrixDimension - 2][MatrixDimension - 1] * x4) /
-            Matrix[MatrixDimension - 2][MatrixDimension - 2];
-        x2 = (Matrix[MatrixDimension - 3][MatrixDimension] - Matrix[MatrixDimension - 3][MatrixDimension - 2] * x3
-            - Matrix[MatrixDimension - 3][MatrixDimension - 1] * x4) / Matrix[MatrixDimension - 3][MatrixDimension - 3];
-        x1 = (Matrix[MatrixDimension - 4][MatrixDimension] - Matrix[MatrixDimension - 4][MatrixDimension - 3] * x2
-            - Matrix[MatrixDimension - 4][MatrixDimension - 2] * x3 - Matrix[MatrixDimension - 4][MatrixDimension - 1] * x4) /
-            Matrix[MatrixDimension - 4][MatrixDimension - 4];
-        cout << "X1 = " << x1 << endl;
-        cout << "X2 = " << x2 << endl;
-        cout << "X3 = " << x3 << endl;
-        cout << "X4 = " << x4 << endl;
-    }
-    GetX(Matrix, X);
-    for (i = 0; i < 4; i++) {
-        cout << X[i] << endl;
+        GetX(Matrix, X);
+        for (i = 0; i < 4; i++) {
+            cout << "X[" << i << "]: " << X[i] << endl;
+        }
     }
     return 0;
 }
@@ -127,15 +86,15 @@ float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1])
 
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension])
 {
-    int m, i;
+    int i, j;
     X[MatrixDimension - 1] = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
-    for (m = MatrixDimension - 2; m >= 0; m--)
+    for (i = MatrixDimension - 2; i >= 0; i--)
     {
         float sum = 0;
-        for (i = m + 1; i < MatrixDimension; i++)
+        for (j = i + 1; j < MatrixDimension; j++)
         {
-            sum += Matrix[m][i] * X[i];
+            sum += Matrix[i][j] * X[j];
         }
-        X[m] = (Matrix[m][MatrixDimension] - sum) / Matrix[m][m];
+        X[i] = (Matrix[i][MatrixDimension] - sum) / Matrix[i][i];
     }
 }
