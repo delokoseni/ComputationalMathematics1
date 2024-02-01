@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 const int MatrixDimension = 4;
-void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension+1]);
+void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1]);
 float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1]);
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension]);
 
@@ -14,7 +14,7 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     int i, j;
-    float Matrix[MatrixDimension][MatrixDimension+1], X[MatrixDimension];
+    float Matrix[MatrixDimension][MatrixDimension + 1], X[MatrixDimension];
     string FileName;
     /*cout << "Input name of file for matrix A: ";
     cin >> FileName;
@@ -23,7 +23,7 @@ int main()
     if (InputFileA.is_open())
     {
         for (i = 0; i < MatrixDimension; i++)
-            for (j = 0; j < MatrixDimension+1; j++)
+            for (j = 0; j < MatrixDimension + 1; j++)
                 InputFileA >> Matrix[i][j];
         InputFileA.close();
     }
@@ -44,7 +44,7 @@ int main()
             n++;
         }
         buffer = Matrix[j][n];
-        for (int k = 0; k < MatrixDimension+1; k++)
+        for (int k = 0; k < MatrixDimension + 1; k++)
         {
             Matrix[j][k] -= Matrix[0][k] * buffer / Matrix[0][0];
         }
@@ -56,7 +56,7 @@ int main()
     for (j = 2; j < MatrixDimension; j++)
     {
         buffer = Matrix[j][1];
-        for (int k = 0; k < MatrixDimension+1; k++)
+        for (int k = 0; k < MatrixDimension + 1; k++)
         {
             Matrix[j][k] -= Matrix[1][k] * buffer / Matrix[1][1];
         }
@@ -73,7 +73,7 @@ int main()
             n++;
         }
         buffer = Matrix[j][n];
-        for (int k = 0; k < MatrixDimension+1; k++)
+        for (int k = 0; k < MatrixDimension + 1; k++)
         {
             Matrix[j][k] -= Matrix[2][k] * buffer / Matrix[2][2];
         }
@@ -93,7 +93,7 @@ int main()
             Matrix[MatrixDimension - 2][MatrixDimension - 2];
         x2 = (Matrix[MatrixDimension - 3][MatrixDimension] - Matrix[MatrixDimension - 3][MatrixDimension - 2] * x3
             - Matrix[MatrixDimension - 3][MatrixDimension - 1] * x4) / Matrix[MatrixDimension - 3][MatrixDimension - 3];
-        x1 = (Matrix[MatrixDimension - 4][MatrixDimension] - Matrix[MatrixDimension - 4][MatrixDimension - 3] * x2 
+        x1 = (Matrix[MatrixDimension - 4][MatrixDimension] - Matrix[MatrixDimension - 4][MatrixDimension - 3] * x2
             - Matrix[MatrixDimension - 4][MatrixDimension - 2] * x3 - Matrix[MatrixDimension - 4][MatrixDimension - 1] * x4) /
             Matrix[MatrixDimension - 4][MatrixDimension - 4];
         cout << "X1 = " << x1 << endl;
@@ -108,10 +108,10 @@ int main()
     return 0;
 }
 
-void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension+1]) 
+void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1])
 {
     for (int i = 0; i < MatrixDimension; i++) {
-        for (int j = 0; j < MatrixDimension+1; j++)
+        for (int j = 0; j < MatrixDimension + 1; j++)
             cout << Matrix[i][j] << "\t\t";
         cout << endl;
     }
@@ -128,18 +128,14 @@ float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1])
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension])
 {
     int m, i;
-    X[MatrixDimension-1] = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
+    X[MatrixDimension - 1] = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
     for (m = MatrixDimension - 2; m >= 0; m--)
     {
-        //cout << "m: " << m << endl;
         float sum = 0;
-        for (i = m+1; i < MatrixDimension; i++) 
+        for (i = m + 1; i < MatrixDimension; i++)
         {
-            //cout << "i: " << i << endl;
-            cout << "X[" << MatrixDimension - 1 << "]: " << X[MatrixDimension - 1] << endl;
-            sum += Matrix[m][i] * X[MatrixDimension-1];
-            cout << "sum: " << Matrix[m][i] << endl;
+            sum += Matrix[m][i] * X[i];
         }
-        X[m] = (Matrix[m - 1][m] + sum) / Matrix[m - 1][m - 1];
+        X[m] = (Matrix[m][MatrixDimension] - sum) / Matrix[m][m];
     }
 }
