@@ -4,7 +4,8 @@
 
 const int MatrixDimension = 4; //Размерность матрицы
 
-void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1]);
+bool MatrixInput(float Matrix[MatrixDimension][MatrixDimension + 1], std::string FileName);
+void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1], std::ostream& Stream);
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension]);
 void GaussMethod(float Matrix[MatrixDimension][MatrixDimension + 1]);
 void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension], float r[MatrixDimension]);
@@ -16,53 +17,95 @@ int main()
 {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    int i, j;
-    float Matrix[MatrixDimension][MatrixDimension + 1], X[MatrixDimension], r[MatrixDimension];
-    string FileName;
-    /*cout << "Введите имя файла: ";
-    cin >> FileName;
-    ifstream InputFileA(FileName);*/
-    ifstream InputFileA("A.txt");
-    if (InputFileA.is_open())
-    {
-        for (i = 0; i < MatrixDimension; i++)
-            for (j = 0; j < MatrixDimension + 1; j++)
-                InputFileA >> Matrix[i][j];
-        InputFileA.close();
-    }
-    else
-        cout << "Ошибка! Не удалось открыть файл!";
-    cout << endl << "Матрица: " << endl;
-    MatrixOutput(Matrix);
-    GaussMethod(Matrix);
-    cout << endl << "Матрица: " << endl;
-    MatrixOutput(Matrix);
-    cout << "Определитель матрицы: ";
-    cout << GetDetermTriangMatrix(Matrix) << endl;
-    if (GetDetermTriangMatrix(Matrix) == 0)
-        cout << "Матрица вырождена." << endl;
-    else
-    {
-        cout << "Матрица не вырождена." << endl;
-        GetX(Matrix, X);
-        for (i = 0; i < MatrixDimension; i++) {
-            cout << "X[" << i << "]: " << X[i] << endl;
+    int i, j, n = 0;
+    float Matrix[MatrixDimension][MatrixDimension + 1]; //Первоначальная матрица
+    float X[MatrixDimension]; //Вектор Х
+    float r[MatrixDimension]; //Вектор невязки
+    float InverseMatrix[MatrixDimension][MatrixDimension]; //Обратная матрица
+    string FileName[3] = { "A0.txt", "A1.txt", "A2.txt" };
+    ofstream OutputFile("output.txt");
+    while (n < 3) {
+        if (!MatrixInput(Matrix, FileName[n]))
+        {
+            cout << endl << "Матрица: " << endl;
+            OutputFile << endl << "Матрица: " << endl;
+            MatrixOutput(Matrix, OutputFile);
+            MatrixOutput(Matrix, std::cout);
+            GaussMethod(Matrix);
+            cout << endl << "Треугольная матрица: " << endl;
+            OutputFile << endl << "Треугольная матрица: " << endl;
+            MatrixOutput(Matrix, OutputFile);
+            MatrixOutput(Matrix, std::cout);
+            cout << endl << "Определитель матрицы: ";
+            OutputFile << endl << "Определитель матрицы: ";
+            cout << GetDetermTriangMatrix(Matrix) << endl;
+            OutputFile << GetDetermTriangMatrix(Matrix) << endl;
+            if (GetDetermTriangMatrix(Matrix) == 0) 
+            {
+                cout << endl << "Матрица вырождена." << endl;
+                OutputFile << endl << "Матрица вырождена." << endl;
+            }
+            else
+            {
+                cout << endl << "Матрица не вырождена." << endl;
+                OutputFile << endl << "Матрица не вырождена." << endl;
+                GetX(Matrix, X);
+                for (i = 0; i < MatrixDimension; i++)
+                {
+                    cout << "X[" << i << "]: " << X[i] << endl;
+                    OutputFile << "X[" << i << "]: " << X[i] << endl;
+                }
+                GetResidualVector(Matrix, X, r);
+                cout << endl << "Вектор невязки: " << endl;
+                OutputFile << endl << "Вектор невязки: " << endl;
+                for (i = 0; i < MatrixDimension; i++) {
+                    cout << "r[" << i << "]: " << r[i] << endl;
+                    OutputFile << "r[" << i << "]: " << r[i] << endl;
+                }
+            }
         }
-        GetResidualVector(Matrix, X, r);
-        cout << "Вектор невязки: " << endl;
+        else
+        {
+            cout << endl << "Ошибка! Не удалось открыть файл!" << endl;
+            OutputFile << endl << "Ошибка! Не удалось открыть файл!" << endl;
+        }
+        n++;
+    }
+    if (!MatrixInput(Matrix, FileName[0])) {
+        if (GetDetermTriangMatrix(Matrix) != 0)
+        {
+            for (i = 0; i < MatrixDimension; i++) {
+                MatrixInput(Matrix, FileName[0]);
+                for (j = 0; j < MatrixDimension; j++)
+                    Matrix[j][MatrixDimension] = 0;
+                Matrix[i][MatrixDimension] = 1;
+                GaussMethod(Matrix);
+                GetX(Matrix, X);
+                for (j = 0; j < MatrixDimension; j++) {
+                    InverseMatrix[i][j] = X[j];
+                }
+            }
+        }
+        cout << endl << "Обратная матрица: " << endl;
+        OutputFile << endl << "Обратная матрица: " << endl;
         for (i = 0; i < MatrixDimension; i++) {
-            cout << "r[" << i << "]: " << r[i] << endl;
+            for (j = 0; j < MatrixDimension; j++) {
+                cout << InverseMatrix[i][j] << "\t\t";
+                OutputFile << InverseMatrix[i][j] << "\t\t";
+            }
+            cout << endl;
+            OutputFile << endl;
         }
     }
     return 0;
 }
 
-void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1])
+void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1], std::ostream& Stream)
 {
     for (int i = 0; i < MatrixDimension; i++) {
         for (int j = 0; j < MatrixDimension + 1; j++)
-            cout << Matrix[i][j] << "\t\t";
-        cout << endl;
+            Stream << Matrix[i][j] << "\t\t";
+        Stream << endl;
     }
 }
 
@@ -117,4 +160,19 @@ void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float
         }
         r[i] = Matrix[i][MatrixDimension] - sum;
     }
+}
+
+bool MatrixInput(float Matrix[MatrixDimension][MatrixDimension + 1], string FileName)
+{
+    ifstream InputFileA(FileName);
+    if (InputFileA.is_open())
+    {
+        for (int i = 0; i < MatrixDimension; i++)
+            for (int j = 0; j < MatrixDimension + 1; j++)
+                InputFileA >> Matrix[i][j];
+        InputFileA.close();
+        return 0;
+    }
+    else
+        return 1;
 }
