@@ -2,7 +2,7 @@
 #include <fstream>
 #include <Windows.h>
 
-const int MatrixDimension = 4;
+const int MatrixDimension = 4; //Размерность матрицы
 void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1]);
 float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1]);
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension]);
@@ -14,7 +14,7 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     int i, j;
-    float Matrix[MatrixDimension][MatrixDimension + 1], X[MatrixDimension];
+    float Matrix[MatrixDimension][MatrixDimension + 1], X[MatrixDimension], r[MatrixDimension];
     string FileName;
     /*cout << "Input name of file for matrix A: ";
     cin >> FileName;
@@ -60,9 +60,22 @@ int main()
     {
         cout << "Матрица не вырождена." << endl;
         GetX(Matrix, X);
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < MatrixDimension; i++) {
             cout << "X[" << i << "]: " << X[i] << endl;
         }
+    }
+    float sum;
+    for (i = 0; i < MatrixDimension; i++)
+    {
+        sum = 0;
+        for (j = 0; j < MatrixDimension; j++)
+        {
+            sum += Matrix[i][j] * X[j];
+        }
+        r[i] = Matrix[i][MatrixDimension] - sum;
+    }
+    for (i = 0; i < MatrixDimension; i++) {
+        cout << "r[" << i << "]: " << r[i] << endl;
     }
     return 0;
 }
