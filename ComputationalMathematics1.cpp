@@ -3,9 +3,12 @@
 #include <Windows.h>
 
 const int MatrixDimension = 4; //Размерность матрицы
+
 void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1]);
-float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1]);
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension]);
+void GaussMethod(float Matrix[MatrixDimension][MatrixDimension + 1]);
+void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension], float r[MatrixDimension]);
+float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1]);
 
 using namespace std;
 
@@ -16,7 +19,7 @@ int main()
     int i, j;
     float Matrix[MatrixDimension][MatrixDimension + 1], X[MatrixDimension], r[MatrixDimension];
     string FileName;
-    /*cout << "Input name of file for matrix A: ";
+    /*cout << "Введите имя файла: ";
     cin >> FileName;
     ifstream InputFileA(FileName);*/
     ifstream InputFileA("A.txt");
@@ -29,27 +32,9 @@ int main()
     }
     else
         cout << "Ошибка! Не удалось открыть файл!";
-
     cout << endl << "Матрица: " << endl;
     MatrixOutput(Matrix);
-
-    float buffer;
-
-    int n = 0;
-    for (i = 1; i < MatrixDimension; i++) {
-        n = 0;
-        while (Matrix[i][n] == 0) {
-            n++;
-        }
-        for (j = i; j < MatrixDimension; j++)
-        {
-            buffer = Matrix[j][n];
-            for (int k = 0; k < MatrixDimension + 1; k++)
-            {
-                Matrix[j][k] -= Matrix[i-1][k] * buffer / Matrix[i-1][i-1];
-            }
-        }
-    }
+    GaussMethod(Matrix);
     cout << endl << "Матрица: " << endl;
     MatrixOutput(Matrix);
     cout << "Определитель матрицы: ";
@@ -63,19 +48,11 @@ int main()
         for (i = 0; i < MatrixDimension; i++) {
             cout << "X[" << i << "]: " << X[i] << endl;
         }
-    }
-    float sum;
-    for (i = 0; i < MatrixDimension; i++)
-    {
-        sum = 0;
-        for (j = 0; j < MatrixDimension; j++)
-        {
-            sum += Matrix[i][j] * X[j];
+        GetResidualVector(Matrix, X, r);
+        cout << "Вектор невязки: " << endl;
+        for (i = 0; i < MatrixDimension; i++) {
+            cout << "r[" << i << "]: " << r[i] << endl;
         }
-        r[i] = Matrix[i][MatrixDimension] - sum;
-    }
-    for (i = 0; i < MatrixDimension; i++) {
-        cout << "r[" << i << "]: " << r[i] << endl;
     }
     return 0;
 }
@@ -99,15 +76,45 @@ float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1])
 
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension])
 {
-    int i, j;
     X[MatrixDimension - 1] = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
-    for (i = MatrixDimension - 2; i >= 0; i--)
+    for (int i = MatrixDimension - 2; i >= 0; i--)
     {
         float sum = 0;
-        for (j = i + 1; j < MatrixDimension; j++)
+        for (int j = i + 1; j < MatrixDimension; j++)
         {
             sum += Matrix[i][j] * X[j];
         }
         X[i] = (Matrix[i][MatrixDimension] - sum) / Matrix[i][i];
+    }
+}
+
+void GaussMethod(float Matrix[MatrixDimension][MatrixDimension + 1])
+{
+    for (int i = 1; i < MatrixDimension; i++) {
+        int n = 0;
+        while (Matrix[i][n] == 0) {
+            n++;
+        }
+        for (int j = i; j < MatrixDimension; j++)
+        {
+            float buffer = Matrix[j][n];
+            for (int k = 0; k < MatrixDimension + 1; k++)
+            {
+                Matrix[j][k] -= Matrix[i - 1][k] * buffer / Matrix[i - 1][i - 1];
+            }
+        }
+    }
+}
+
+void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension], float r[MatrixDimension])
+{
+    for (int i = 0; i < MatrixDimension; i++)
+    {
+        float sum = 0;
+        for (int j = 0; j < MatrixDimension; j++)
+        {
+            sum += Matrix[i][j] * X[j];
+        }
+        r[i] = Matrix[i][MatrixDimension] - sum;
     }
 }
