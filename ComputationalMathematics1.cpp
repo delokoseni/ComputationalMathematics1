@@ -1,14 +1,18 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <Windows.h>
+#include <cmath>
 
 const int MatrixDimension = 4; //Размерность матрицы
+int Sign = 1; //Знак для определителя
 
 bool MatrixInput(float Matrix[MatrixDimension][MatrixDimension + 1], std::string FileName);
 void MatrixOutput(float Matrix[MatrixDimension][MatrixDimension + 1], std::ostream& Stream);
 void GetX(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension]);
 void GaussMethod(float Matrix[MatrixDimension][MatrixDimension + 1]);
 void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension], float r[MatrixDimension]);
+void GaussMethodWithChoice(float Matrix[MatrixDimension][MatrixDimension + 1]);
+void RowRearrangement(float Matrix[MatrixDimension][MatrixDimension + 1], int FirstRow, int SecondRow);
 float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1]);
 
 using namespace std;
@@ -31,11 +35,14 @@ int main()
             OutputFile << endl << "Матрица: " << endl;
             MatrixOutput(Matrix, OutputFile);
             MatrixOutput(Matrix, std::cout);
-            GaussMethod(Matrix);
+            //GaussMethod(Matrix);
+            //cout << endl << "Треугольная матрица: " << endl;
+            GaussMethodWithChoice(Matrix);
             cout << endl << "Треугольная матрица: " << endl;
+            MatrixOutput(Matrix, std::cout);
             OutputFile << endl << "Треугольная матрица: " << endl;
             MatrixOutput(Matrix, OutputFile);
-            MatrixOutput(Matrix, std::cout);
+            //MatrixOutput(Matrix, std::cout);
             cout << endl << "Определитель матрицы: ";
             OutputFile << endl << "Определитель матрицы: ";
             cout << GetDetermTriangMatrix(Matrix) << endl;
@@ -79,7 +86,8 @@ int main()
                 for (j = 0; j < MatrixDimension; j++)
                     Matrix[j][MatrixDimension] = 0;
                 Matrix[i][MatrixDimension] = 1;
-                GaussMethod(Matrix);
+                //GaussMethod(Matrix);
+                GaussMethodWithChoice(Matrix);
                 GetX(Matrix, X);
                 for (j = 0; j < MatrixDimension; j++) {
                     InverseMatrix[i][j] = X[j];
@@ -114,6 +122,8 @@ float GetDetermTriangMatrix(float Matrix[MatrixDimension][MatrixDimension + 1])
     float determinant = 1;
     for (int i = 0; i < MatrixDimension; i++)
         determinant *= Matrix[i][i];
+    determinant *= Sign;
+    Sign = 1;
     return determinant;
 }
 
@@ -149,6 +159,33 @@ void GaussMethod(float Matrix[MatrixDimension][MatrixDimension + 1])
     }
 }
 
+void GaussMethodWithChoice(float Matrix[MatrixDimension][MatrixDimension + 1])
+{
+    for (int i = 0; i < MatrixDimension; i++) {
+        for (int j = i; j < MatrixDimension; j++) 
+        {
+            if (fabs(Matrix[i][i]) < fabs(Matrix[j][i])) {
+                RowRearrangement(Matrix, i, j);
+                Sign *= -1;
+            }
+        }
+        int n = 0;
+        while (Matrix[i][n] == 0) {
+            n++;
+        }
+        if (i > 0) {
+            for (int j = i; j < MatrixDimension; j++)
+            {
+                float buffer = Matrix[j][n];
+                for (int k = 0; k < MatrixDimension + 1; k++)
+                {
+                    Matrix[j][k] -= Matrix[i - 1][k] * buffer / Matrix[i - 1][i - 1];
+                }
+            }
+        }
+    }
+}
+
 void GetResidualVector(float Matrix[MatrixDimension][MatrixDimension + 1], float X[MatrixDimension], float r[MatrixDimension])
 {
     for (int i = 0; i < MatrixDimension; i++)
@@ -175,4 +212,13 @@ bool MatrixInput(float Matrix[MatrixDimension][MatrixDimension + 1], string File
     }
     else
         return 1;
+}
+
+void RowRearrangement(float Matrix[MatrixDimension][MatrixDimension + 1], int FirstRow, int SecondRow) {
+    float buffer;
+    for (int i = 0; i < MatrixDimension+1; i++) {
+        buffer = Matrix[FirstRow][i];
+        Matrix[FirstRow][i] = Matrix[SecondRow][i];
+        Matrix[SecondRow][i] = buffer;
+    }
 }
