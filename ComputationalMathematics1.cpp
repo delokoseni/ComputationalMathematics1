@@ -3,18 +3,15 @@
 #include <Windows.h>
 #include <cmath>
 
-const int MatrixDimension = 4; //Размерность матрицы
 int Sign = 1; //Знак для определителя
 
-bool MatrixInput(double Matrix[MatrixDimension][MatrixDimension + 1], std::string FileName); //Ввод матрицы
-void MatrixOutput(double Matrix[MatrixDimension][MatrixDimension + 1], std::ostream& Stream); //Вывод матрицы
-void GetX(double Matrix[MatrixDimension][MatrixDimension + 1], double X[MatrixDimension]); //Найти столбец свободных членов
-void GaussMethod(double Matrix[MatrixDimension][MatrixDimension + 1]); //Метод Гаусса без выбора
-void GaussMethodWithChoice(double Matrix[MatrixDimension][MatrixDimension + 1]); //Метод Гаусса с выбором
-//Получить вектор невязки
-void GetResidualVector(double Matrix[MatrixDimension][MatrixDimension + 1], double X[MatrixDimension], double r[MatrixDimension]);
-void RowRearrangement(double Matrix[MatrixDimension][MatrixDimension + 1], int FirstRow, int SecondRow); //Перестановка строк
-double GetDetermTriangMatrix(double Matrix[MatrixDimension][MatrixDimension + 1]); //Получить определитель треугольной матрицы
+bool MatrixInput(double** Matrix, int N, int M, std::string FileName); //Ввод матрицы
+void MatrixOutput(double** Matrix, int N, int M, std::ostream& Stream); //Вывод матрицы
+void GetX(double** Matrix, int N, int M, double* X); //Найти столбец свободных членов
+void GaussMethodWithChoice(double** Matrix, int N, int M); //Метод Гаусса с выбором
+void GetResidualVector(double** Matrix, int N, int M, double* X, double* r); //Получить вектор невязки
+void RowRearrangement(double** Matrix, int N, int M, int FirstRow, int SecondRow); //Перестановка строк
+double GetDetermTriangMatrix(double** Matrix, int N, int M); //Получить определитель треугольной матрицы
 
 using namespace std;
 
@@ -22,66 +19,80 @@ int main()
 {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    int i, j, n = 0;
-    double Matrix[MatrixDimension][MatrixDimension + 1]; //Первоначальная матрица
-    double X[MatrixDimension]; //Вектор Х
-    double r[MatrixDimension]; //Вектор невязки
-    double InverseMatrix[MatrixDimension][MatrixDimension]; //Обратная матрица
-    string FileName[3] = { "A0.txt", "A1.txt", "A2.txt" };
+    string FileName = "A2.txt", FileForNM = "NM.txt";
+    int i, j, n, m, k = 0;
+    ifstream InputFileNM(FileForNM);
+    if (InputFileNM.is_open())
+    {
+        InputFileNM >> n; //Количество строк в матрице
+        InputFileNM >> m; //Количество столбцов в матрице
+        InputFileNM.close();
+    }
+    else
+        cout << "Ошибка! Не удалось открыть файл для чтения N и M." << endl;
+    double** Matrix; //Первоначальная матрица
+    Matrix = new double* [n];
+    for (i = 0; i < n; i++)
+        *(Matrix + i) = new double[m + 1];
+    double* X; //Вектор Х
+    X = new double[n];
+    double* r; //Вектор невязки
+    r = new double[n];
+    double** InverseMatrix; //Обратная матрица
+    InverseMatrix = new double* [n];
+    for (i = 0; i < n; i++)
+        *(InverseMatrix + i) = new double[m + 1];
     ofstream OutputFile("output.txt");
-    while (n < 3) {
-        if (!MatrixInput(Matrix, FileName[n])) //Ввод, вычисление и вывод матриц треугольных матриц
+    if (!MatrixInput(Matrix, n, m, FileName)) //Ввод, вычисление и вывод матриц треугольных матриц
+    {
+        OutputFile << endl << "Матрица: " << endl;
+        MatrixOutput(Matrix, n, m, OutputFile);
+        GaussMethodWithChoice(Matrix, n, m);
+        OutputFile << endl << "Треугольная матрица: " << endl;
+        MatrixOutput(Matrix, n, m, OutputFile);
+        OutputFile << endl << "Определитель матрицы: ";
+        OutputFile << GetDetermTriangMatrix(Matrix, n, m) << endl;
+        if (GetDetermTriangMatrix(Matrix, n, m) == 0)
         {
-            OutputFile << endl << "Матрица: " << endl;
-            MatrixOutput(Matrix, OutputFile);
-            GaussMethodWithChoice(Matrix);
-            OutputFile << endl << "Треугольная матрица: " << endl;
-            MatrixOutput(Matrix, OutputFile);
-            OutputFile << endl << "Определитель матрицы: ";
-            OutputFile << GetDetermTriangMatrix(Matrix) << endl;
-            if (GetDetermTriangMatrix(Matrix) == 0) 
-            {
-                OutputFile << endl << "Матрица вырождена." << endl;
-            }
-            else
-            {
-                OutputFile << endl << "Матрица не вырождена." << endl;
-                GetX(Matrix, X);
-                for (i = 0; i < MatrixDimension; i++)
-                {
-                    OutputFile << "X[" << i << "]: " << X[i] << endl;
-                }
-                GetResidualVector(Matrix, X, r);
-                OutputFile << endl << "Вектор невязки: " << endl;
-                for (i = 0; i < MatrixDimension; i++) {
-                    OutputFile << "r[" << i << "]: " << r[i] << endl;
-                }
-            }
+            OutputFile << endl << "Матрица вырождена." << endl;
         }
         else
         {
-            cout << endl << "Ошибка! Не удалось открыть файл!" << endl;
+            OutputFile << endl << "Матрица не вырождена." << endl;
+            GetX(Matrix, n, m, X);
+            for (i = 0; i < n; i++)
+            {
+                OutputFile << "X[" << i << "]: " << X[i] << endl;
+            }
+            GetResidualVector(Matrix, n, m, X, r);
+            OutputFile << endl << "Вектор невязки: " << endl;
+            for (i = 0; i < n; i++) {
+                OutputFile << "r[" << i << "]: " << r[i] << endl;
+            }
         }
-        n++;
     }
-    if (!MatrixInput(Matrix, FileName[0])) { //Вычисление обратной матрицы
-        if (GetDetermTriangMatrix(Matrix) != 0)
+    else
+    {
+        cout << endl << "Ошибка! Не удалось открыть файл!" << endl;
+    }
+    if (!MatrixInput(Matrix, n, m, FileName)) { //Вычисление обратной матрицы
+        if (GetDetermTriangMatrix(Matrix, n, m) != 0)
         {
-            for (i = 0; i < MatrixDimension; i++) {
-                MatrixInput(Matrix, FileName[0]);
-                for (j = 0; j < MatrixDimension; j++)
-                    Matrix[j][MatrixDimension] = 0;
-                Matrix[i][MatrixDimension] = 1;
-                GaussMethodWithChoice(Matrix);
-                GetX(Matrix, X);
-                for (j = 0; j < MatrixDimension; j++) {
+            for (i = 0; i < n; i++) {
+                MatrixInput(Matrix, n, m, FileName);
+                for (j = 0; j < m; j++)
+                    Matrix[j][m] = 0;
+                Matrix[i][m] = 1;
+                GaussMethodWithChoice(Matrix, n, m);
+                GetX(Matrix, n, m, X);
+                for (j = 0; j < m; j++) {
                     InverseMatrix[i][j] = X[j];
                 }
             }
         }
         OutputFile << endl << "Обратная матрица: " << endl;
-        for (i = 0; i < MatrixDimension; i++) {
-            for (j = 0; j < MatrixDimension; j++) {
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < m; j++) {
                 OutputFile << InverseMatrix[i][j] << "\t\t";
             }
             OutputFile << endl;
@@ -90,67 +101,46 @@ int main()
     return 0;
 }
 //Вывод матрицы
-void MatrixOutput(double Matrix[MatrixDimension][MatrixDimension + 1], std::ostream& Stream)
+void MatrixOutput(double** Matrix, int N, int M, std::ostream& Stream)
 {
-    for (int i = 0; i < MatrixDimension; i++) {
-        for (int j = 0; j < MatrixDimension + 1; j++)
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M + 1; j++)
             Stream << Matrix[i][j] << "\t\t";
         Stream << endl;
     }
 }
 //Вычисление определителя треугольной матрицы
-double GetDetermTriangMatrix(double Matrix[MatrixDimension][MatrixDimension + 1])
+double GetDetermTriangMatrix(double** Matrix, int N, int M)
 {
     double determinant = 1;
-    for (int i = 0; i < MatrixDimension; i++)
+    for (int i = 0; i < N; i++)
         determinant *= Matrix[i][i];
     determinant *= Sign;
     Sign = 1;
     return determinant;
 }
 //Вычисление столбца свободных членов
-void GetX(double Matrix[MatrixDimension][MatrixDimension + 1], double X[MatrixDimension])
+void GetX(double** Matrix, int N, int M, double* X)
 {
-    X[MatrixDimension - 1] = Matrix[MatrixDimension - 1][MatrixDimension] / Matrix[MatrixDimension - 1][MatrixDimension - 1];
-    for (int i = MatrixDimension - 2; i >= 0; i--)
+    X[N - 1] = Matrix[N - 1][M] / Matrix[N - 1][M - 1];
+    for (int i = N - 2; i >= 0; i--)
     {
         double sum = 0;
-        for (int j = i + 1; j < MatrixDimension; j++)
+        for (int j = i + 1; j < M; j++)
         {
             sum += Matrix[i][j] * X[j];
         }
-        X[i] = (Matrix[i][MatrixDimension] - sum) / Matrix[i][i];
-    }
-}
-//Метод Гаусса без выбора
-void GaussMethod(double Matrix[MatrixDimension][MatrixDimension + 1])
-{
-    for (int i = 1; i < MatrixDimension; i++) {
-        int n = 0;
-        while (Matrix[i][n] == 0) {
-            n++;
-        }
-        for (int j = i; j < MatrixDimension; j++)
-        {
-            double buffer = Matrix[j][n];
-            for (int k = 0; k < MatrixDimension + 1; k++)
-            {
-                if (Matrix[i - 1][i - 1] != 0)
-                    Matrix[j][k] -= Matrix[i - 1][k] * buffer / Matrix[i - 1][i - 1];
-                else
-                    Matrix[j][k] = 0;
-            }
-        }
+        X[i] = (Matrix[i][M] - sum) / Matrix[i][i];
     }
 }
 //Метод Гаусса с выбором
-void GaussMethodWithChoice(double Matrix[MatrixDimension][MatrixDimension + 1])
+void GaussMethodWithChoice(double** Matrix, int N, int M)
 {
-    for (int i = 0; i < MatrixDimension; i++) {
-        for (int j = i; j < MatrixDimension; j++) 
+    for (int i = 0; i < N; i++) {
+        for (int j = i; j < M; j++)
         {
             if (fabs(Matrix[i][i]) < fabs(Matrix[j][i])) {
-                RowRearrangement(Matrix, i, j);
+                RowRearrangement(Matrix, N, M, i, j);
                 Sign *= -1;
             }
         }
@@ -159,10 +149,10 @@ void GaussMethodWithChoice(double Matrix[MatrixDimension][MatrixDimension + 1])
             n++;
         }
         if (i > 0) {
-            for (int j = i; j < MatrixDimension; j++)
+            for (int j = i; j < N; j++)
             {
                 double buffer = Matrix[j][n];
-                for (int k = 0; k < MatrixDimension + 1; k++)
+                for (int k = 0; k < M + 1; k++)
                 {
                     if (Matrix[i - 1][i - 1] != 0)
                         Matrix[j][k] -= Matrix[i - 1][k] * buffer / Matrix[i - 1][i - 1];
@@ -174,26 +164,26 @@ void GaussMethodWithChoice(double Matrix[MatrixDimension][MatrixDimension + 1])
     }
 }
 //Вычисление вектора невязки
-void GetResidualVector(double Matrix[MatrixDimension][MatrixDimension + 1], double X[MatrixDimension], double r[MatrixDimension])
+void GetResidualVector(double** Matrix, int N, int M, double* X, double* r)
 {
-    for (int i = 0; i < MatrixDimension; i++)
+    for (int i = 0; i < N; i++)
     {
         double sum = 0;
-        for (int j = 0; j < MatrixDimension; j++)
+        for (int j = 0; j < M; j++)
         {
             sum += Matrix[i][j] * X[j];
         }
-        r[i] = Matrix[i][MatrixDimension] - sum;
+        r[i] = Matrix[i][M] - sum;
     }
 }
 //Ввод матрицы
-bool MatrixInput(double Matrix[MatrixDimension][MatrixDimension + 1], string FileName)
+bool MatrixInput(double** Matrix, int N, int M, std::string FileName)
 {
     ifstream InputFileA(FileName);
     if (InputFileA.is_open())
     {
-        for (int i = 0; i < MatrixDimension; i++)
-            for (int j = 0; j < MatrixDimension + 1; j++)
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < M + 1; j++)
                 InputFileA >> Matrix[i][j];
         InputFileA.close();
         return 0;
@@ -202,9 +192,9 @@ bool MatrixInput(double Matrix[MatrixDimension][MatrixDimension + 1], string Fil
         return 1;
 }
 //Перестановка строк матрицы
-void RowRearrangement(double Matrix[MatrixDimension][MatrixDimension + 1], int FirstRow, int SecondRow) {
+void RowRearrangement(double** Matrix, int N, int M, int FirstRow, int SecondRow) {
     double buffer;
-    for (int i = 0; i < MatrixDimension+1; i++) {
+    for (int i = 0; i < M + 1; i++) {
         buffer = Matrix[FirstRow][i];
         Matrix[FirstRow][i] = Matrix[SecondRow][i];
         Matrix[SecondRow][i] = buffer;
